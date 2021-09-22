@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import Axios from 'axios'
+import { saveMessage } from '../_actions/message_actions'
 
 function Chatbot() {
+    const dispatch = useDispatch()
     useEffect(() => {
         eventQuery('WelcomeToMyWorld')
     }, [])
@@ -19,6 +22,9 @@ function Chatbot() {
                 text: { text }
             }
         }
+        dispatch(saveMessage(conversation))
+        console.log('message I sent : ', conversation)
+
         const textQueryVariable = { text }
         try {
             const response = await Axios.post('/api/dialogflow/textQuery', textQueryVariable)
@@ -33,6 +39,7 @@ function Chatbot() {
                 who: 'bot',
                 content: { text: { text: '에러 발생. 문제를 해결해!!' } }
             }
+            dispatch(saveMessage(conversation))
             console.log(conversation)
         }
     }
@@ -45,12 +52,14 @@ function Chatbot() {
                 who: 'bot', content
             }
             console.log(conversation)
+            dispatch(saveMessage(conversation))
         } catch (err) {
             let conversation = {
                 who: 'bot',
                 content: { text: { text: '에러 발생. 문제를 해결해!!' } }
             }
             console.log(conversation)
+            dispatch(saveMessage(conversation))
         }
     }
     return (
