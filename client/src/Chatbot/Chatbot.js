@@ -4,6 +4,7 @@ import Axios from 'axios'
 import { saveMessage } from '../_actions/message_actions'
 import Message from './Sections/Message'
 import { List, Icon, Avatar } from 'antd'
+import Card from './Sections/Card'
 
 function Chatbot() {
     const dispatch = useDispatch()
@@ -31,13 +32,14 @@ function Chatbot() {
         const textQueryVariable = { text }
         try {
             const response = await Axios.post('/api/dialogflow/textQuery', textQueryVariable)
-            const content = response.data.fulfillmentMessages[0]
-            conversation = {
-                who: 'bot',
-                content: content
+            for (let content of response.data.fulfillmentMessages) {
+                let conversation = {
+                    who: 'bot',
+                    content: content
+                }
+                // console.log(conversation)
+                dispatch(saveMessage(conversation))
             }
-            console.log(conversation)
-            dispatch(saveMessage(conversation))
         } catch (err) {
             conversation = {
                 who: 'bot',
@@ -51,12 +53,14 @@ function Chatbot() {
         const eventQueryVariable = { event }
         try {
             const response = await Axios.post('/api/dialogflow/eventQuery', eventQueryVariable)
-            const content = response.data.fulfillmentMessages[0]
-            let conversation = {
-                who: 'bot', content
+            for (let content of response.data.fulfillmentMessages) {
+                let conversation = {
+                    who: 'bot',
+                    content: content
+                }
+                // console.log(conversation)
+                dispatch(saveMessage(conversation))
             }
-            // console.log(conversation)
-            dispatch(saveMessage(conversation))
         } catch (err) {
             let conversation = {
                 who: 'bot',
@@ -66,9 +70,25 @@ function Chatbot() {
             dispatch(saveMessage(conversation))
         }
     }
+    const renderCards = (cards) => {
+        return cards.map((card, i) => <Card key={i} cardInfo={card.structValue} />)
+    }
     const renderOneMessage = (message, i) => {
-        console.log('message', message)
-        return <Message key={i} who={message.who} text={message.content.text.text} />
+        // console.log('message', message)
+        if (message.content && message.content.text && message.content.text.text)
+            return <Message key={i} who={message.who} text={message.content.text.text} />
+        else if (message.content && message.content.payload.fields.card) {
+            const avatarSrc = message.who === 'bot' ? <Icon type="robot" /> : <Icon type="smile" />
+            return (
+                <List.Item key={i} style={{ padding: '1rem' }}>
+                    <List.Item.Meta
+                        avatar={<Avatar icon={avatarSrc} />}
+                        title={message.who}
+                        description={renderCards(message.content.payload.fields.card.listValue.values)}
+                    />
+                </List.Item>
+            )
+        }
     }
     const renderMessage = (returndMessages) => {
         if (returndMessages) return returndMessages.map((message, i) => renderOneMessage(message, i))
