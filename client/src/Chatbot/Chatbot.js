@@ -2,9 +2,12 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import Axios from 'axios'
 import { saveMessage } from '../_actions/message_actions'
+import Message from './Sections/Message'
+import { List, Icon, Avatar } from 'antd'
 
 function Chatbot() {
     const dispatch = useDispatch()
+    const messageFromRedux = useSelector(state => state.message.messages)
     useEffect(() => {
         eventQuery('WelcomeToMyWorld')
     }, [])
@@ -31,16 +34,17 @@ function Chatbot() {
             const content = response.data.fulfillmentMessages[0]
             conversation = {
                 who: 'bot',
-                content: { content }
+                content: content
             }
             console.log(conversation)
+            dispatch(saveMessage(conversation))
         } catch (err) {
             conversation = {
                 who: 'bot',
                 content: { text: { text: '에러 발생. 문제를 해결해!!' } }
             }
             dispatch(saveMessage(conversation))
-            console.log(conversation)
+            // console.log(conversation)
         }
     }
     const eventQuery = async (event) => {
@@ -51,25 +55,33 @@ function Chatbot() {
             let conversation = {
                 who: 'bot', content
             }
-            console.log(conversation)
+            // console.log(conversation)
             dispatch(saveMessage(conversation))
         } catch (err) {
             let conversation = {
                 who: 'bot',
                 content: { text: { text: '에러 발생. 문제를 해결해!!' } }
             }
-            console.log(conversation)
+            // console.log(conversation)
             dispatch(saveMessage(conversation))
         }
     }
+    const renderOneMessage = (message, i) => {
+        console.log('message', message)
+        return <Message key={i} who={message.who} text={message.content.text.text} />
+    }
+    const renderMessage = (returndMessages) => {
+        if (returndMessages) return returndMessages.map((message, i) => renderOneMessage(message, i))
+        else return null
+    }
     return (
-        <div style={{ height: 700, width: 700, border: '1px solid black', borderRadius: '3px', textAlign: 'center', background: 'skyblue' }}>
+        <div style={{ height: 700, width: 700, border: '1px solid black', borderRadius: '3px', background: 'skyblue' }}>
             <div style={{ height: 644, width: '100%', overflow: 'auto' }}>
-
+                {renderMessage(messageFromRedux)}
             </div>
             <input
                 type="text"
-                style={{ margin: '0px 1px', width: '99%', height: 50, borderRadius: '2px', padding: '3px', fontSize: '1rem' }}
+                style={{ margin: 0, width: '100%', height: 50, borderRadius: '2px', padding: '3px', fontSize: '1rem' }}
                 placeholder="Send a Message..."
                 onKeyPress={keyPressHandle}
             />
