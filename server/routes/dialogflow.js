@@ -29,9 +29,7 @@ router.post('/textQuery', async (req, res) => {
         },
     };
     // Send request and log result
-    console.log('test1')
     const responses = await sessionClient.detectIntent(request);
-    console.log('test2')
     console.log('Detected intent');
     const result = responses[0].queryResult;
     console.log(`  Query: ${result.queryText}`);
@@ -40,4 +38,18 @@ router.post('/textQuery', async (req, res) => {
     res.send(result)
 })
 
+router.post('/eventQuery', async (req, res) => {
+    const request = {
+        session: sessionPath,
+        queryInput: {
+            event: { name: req.body.event, languageCode }
+        }
+    }
+    const responses = await sessionClient.detectIntent(request)
+    console.log('Detected intent');
+    const result = responses[0].queryResult;
+    console.log(`  Query: ${result.queryText}`);
+    console.log(`  Response: ${result.fulfillmentText}`);
+    res.send(result)
+})
 module.exports = router;
